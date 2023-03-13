@@ -4,9 +4,9 @@ nlp = spacy.load("pt_core_news_sm")
 import pt_core_news_sm
 nlp = pt_core_news_sm.load()
 
-import tools
+import Tools
 import Preprocess
-import similaridade
+import Similaridade
 
 import numpy as np
 import pickle
@@ -103,7 +103,7 @@ def vector_model(paths):
 
     except:
         for index, path in enumerate(paths):
-                document =  tools.get_document(path)
+                document =  Tools.get_document(path)
 
                 if len(document) > 1000000:
                     i = 1000000
@@ -131,11 +131,11 @@ def vector_model(paths):
 
                 tf_idf[i][j] = tf[i][j] * idf[i]
 
-        tools.save_data(V,'./VectorModel/vocabulary', obj=True)
-        tools.save_data(tf_idf,'./VectorModel/td_idf')
-        tools.save_data(tf,'./VectorModel/tf')
-        tools.save_data(df,'./VectorModel/df')
-        tools.save_data(idf,'./VectorModel/idf')
+        Tools.save_data(V,'./VectorModel/vocabulary', obj=True)
+        Tools.save_data(tf_idf,'./VectorModel/td_idf')
+        Tools.save_data(tf,'./VectorModel/tf')
+        Tools.save_data(df,'./VectorModel/df')
+        Tools.save_data(idf,'./VectorModel/idf')
 
     q_vector = get_query(V, tf_idf, idf)
     tf_idf = np.array(tf_idf)
@@ -145,16 +145,16 @@ def vector_model(paths):
     for i in range(n_docs):
         d_vector = tf_idf[:,i]
 
-        ranking.append( (paths[i], similaridade.cosseno(q_vector,d_vector)) )
+        ranking.append( (paths[i], Similaridade.cosseno(q_vector,d_vector)) )
 
-    ranking.sort(key=similaridade.my_comp, reverse=True)
+    ranking.sort(key=Similaridade.my_comp, reverse=True)
 
     print('Pontuação utilizando o cosseno score!')
     for item in ranking[0:10]:
         print( f'{item[0]}\t --------\t {item[1]}' )
 
 def main():
-    paths = tools.get_paths()
+    paths = Tools.get_paths()
 
     vector_model(paths)
 

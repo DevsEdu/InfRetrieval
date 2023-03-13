@@ -4,9 +4,9 @@ nlp = spacy.load("pt_core_news_sm")
 import pt_core_news_sm
 nlp = pt_core_news_sm.load()
 
-import tools
+import Tools
 import Preprocess
-import similaridade
+import Similaridade
 import numpy as np
 
 import json
@@ -104,7 +104,7 @@ def boolean_model(paths):
 
     except:
         for index, path in enumerate(paths):
-            document =  tools.get_document(path)
+            document =  Tools.get_document(path)
 
             if len(document) > 1000000:
                 i = 1000000
@@ -126,10 +126,10 @@ def boolean_model(paths):
                 bm_indexing(document, n_docs, index, V, IM, II, DF)        
 
 
-        tools.save_data(V,'./BooleanModel/vocabulary',obj=True)
-        tools.save_data(IM,'./BooleanModel/incidentMatrix')
-        tools.save_data(II,'./BooleanModel/invertedIndex',obj=True)
-        tools.save_data(DF,'./BooleanModel/docsFrequency',obj=True)
+        Tools.save_data(V,'./BooleanModel/vocabulary',obj=True)
+        Tools.save_data(IM,'./BooleanModel/incidentMatrix')
+        Tools.save_data(II,'./BooleanModel/invertedIndex',obj=True)
+        Tools.save_data(DF,'./BooleanModel/docsFrequency',obj=True)
 
     docs, word_list = get_query(II, V)
 
@@ -138,16 +138,16 @@ def boolean_model(paths):
     for doc in docs:
         indices = np.nonzero( np.array(IM)[:,doc] )[0]
 
-        ranking.append( (paths[doc], similaridade.dice(set(indices), set(word_list))))
+        ranking.append( (paths[doc], Similaridade.dice(set(indices), set(word_list))))
 
-    ranking.sort(key=similaridade.my_comp, reverse=True)
+    ranking.sort(key=Similaridade.my_comp, reverse=True)
 
     print('Pontuação utilizando DICE score!')
     for item in ranking:
         print(f'{item[0]}\t ---\t {item[1]}')       
 
 def main():
-    paths = tools.get_paths()
+    paths = Tools.get_paths()
 
     boolean_model(paths)
 
