@@ -4,13 +4,13 @@ nlp = spacy.load("pt_core_news_sm")
 import pt_core_news_sm
 nlp = pt_core_news_sm.load()
 
-import os
-import json
-import pickle
-
+import tools
 import Preprocess
 import similaridade
 import numpy as np
+
+import json
+import pickle
 
 #Preprocessamento e indexação do modelo booleano
 #V: Vocabulário, IM: Incidence Matrix, II: Inverted Index e DF: Documents Frequency
@@ -56,46 +56,6 @@ def bm_indexing(text ,n_docs , doc_id, V, IM, II, DF):
                     #Informa a observacao neste documento
                     IM[ V[p_token] ][doc_id] = 1
 
-#Diretórios para os documentos
-def get_paths():
-    paths = []
-
-    #Obtendo todas as pastas
-    pastes = os.listdir("./data")
-
-    for paste in pastes:       
-        files = os.listdir("./data/" + paste)
-
-        #Obtendo todos os arquivos
-        for file in files:
-            paths.append("./data/"+paste+"/"+file)
-
-    return paths
-
-#Leitura de todos os documentos
-def get_document(path):    
-
-    file = open(path,'r')
-    
-    document = file.read()
-
-    file.close()
-    
-    return document.replace('\n',' ')
-
-#Geração de arquivo com pickle ou json
-def save_data(data,name,obj=False):    
-
-    if obj:
-        file = open(name, 'w')
-        json.dump(data,file)
-
-    else:
-        file = open(name, 'wb')
-        pickle.dump(data,file)
-
-    file.close()
-
 #Obter documentos de uma query
 def get_query(II, V):
     query = input('O que deseja buscar? ')
@@ -130,21 +90,21 @@ def boolean_model(paths):
     DF = {}
 
     try:
-        with open('vocabulary', 'r') as f:
+        with open('./BooleanModel/vocabulary', 'r') as f:
             V = json.load(f)
         
-        with open('incidentMatrix', 'rb') as f:
+        with open('./BooleanModel/incidentMatrix', 'rb') as f:
             IM = pickle.load(f)
 
-        with open('invertedIndex') as f:
+        with open('./BooleanModel/invertedIndex') as f:
             II = json.load(f)
         
-        with open('docsFrequency') as f:
+        with open('./BooleanModel/docsFrequency') as f:
             DF = json.load(f)
 
     except:
         for index, path in enumerate(paths):
-            document =  get_document(path)
+            document =  tools.get_document(path)
 
             if len(document) > 1000000:
                 i = 1000000
@@ -166,10 +126,10 @@ def boolean_model(paths):
                 bm_indexing(document, n_docs, index, V, IM, II, DF)        
 
 
-        save_data(V,'vocabulary',obj=True)
-        save_data(IM,'incidentMatrix')
-        save_data(II,'invertedIndex',obj=True)
-        save_data(DF,'docsFrequency',obj=True)
+        tools.save_data(V,'./BooleanModel/vocabulary',obj=True)
+        tools.save_data(IM,'./BooleanModel/incidentMatrix')
+        tools.save_data(II,'./BooleanModel/invertedIndex',obj=True)
+        tools.save_data(DF,'./BooleanModel/docsFrequency',obj=True)
 
     docs, word_list = get_query(II, V)
 
@@ -186,9 +146,8 @@ def boolean_model(paths):
     for item in ranking:
         print(f'{item[0]}\t ---\t {item[1]}')       
 
-
 def main():
-    paths = get_paths()
+    paths = tools.get_paths()
 
     boolean_model(paths)
 
