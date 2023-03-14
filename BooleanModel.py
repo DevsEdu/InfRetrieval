@@ -75,11 +75,106 @@ def get_query(II, V):
                 docs = set( II[ p_token ] )
 
             else:
-                docs = docs.intersection( set( II[p_token] ) )        
+                docs = docs.intersection( set( II[p_token] ) )   
 
-    #print(word_list)
+
 
     return docs, word_list
+
+def get_query2(II,V):
+    query = input('O que deseja buscar? ')
+
+    operador = []
+    resultado = []
+    word_list = []
+
+    operacoes = {
+        'and' : lambda op1, op2: op1.intersection(op2),
+        'or' : lambda op1, op2: op1.union(op2),
+        'not' : lambda op1, op2 : op1.difference(op2)
+    }
+
+    doc = nlp(query)
+
+    for word in doc:
+        if word.text == 'and' or word.text == 'or' or word.text == 'not':
+            operador.append(word.text)
+
+        else:
+            if word.text == ')':
+                op = resultado.pop()
+                resultado.pop()
+
+                resultado.append(op)
+
+            else:
+                p_token = Preprocess.preprocess( word )
+
+                if p_token == -1:
+                    resultado.append(-1)
+
+                else:
+                    set_word = set( II[ p_token ] )
+
+                    resultado.append(set_word)
+
+                    word_list.append(V[p_token])
+
+            print(operador, resultado)
+
+            if len(operador) > 0:
+                if operador[-1] == 'not' and resultado[-1] != '(' :
+                    
+                    if len(resultado) > 1 and resultado[-2] != '(':                        
+                        op1 = resultado.pop()
+                        op = operador.pop()
+
+                        if op1 == -1:
+                            resultado.append(-1)
+
+                        else:
+                            resultado.append( operacoes[op](op1) )
+                    
+                    elif len(resultado) == 1:
+                        op1 = resultado.pop()
+                        op = operador.pop()
+
+                        if op1 == -1:
+                            resultado.append(-1)
+
+                        else:
+                            resultado.append( operacoes[op](op1) )
+
+                elif resultado[-1] != '(' and resultado[-2] != '(':
+                    op1 = resultado.pop()
+                    op2 = resultado.pop()
+
+                    op = operador.pop()
+
+                    if op1 != -1 and op2 != -1:
+                        resultado.append(operacoes[op](op1,op2))
+
+                    elif op1 == -1 and op2 == -1:
+                        resultado.append(-1)
+                    
+                    elif op1 == -1:
+                        resultado.append(op2)
+                    
+                    else:
+                        resultado.append(op1)
+
+                    
+
+    if len(operador) > 0:
+        op1 = resultado.pop()
+        op2 = resultado.pop()
+
+        op = operador.pop()
+
+        resultado.append(operacoes[op](int(op1),int(op2)))
+
+    return resultado[0], word_list
+
 
 #Modelo booleano de recuperação de informação
 def boolean_model(paths):
@@ -131,7 +226,9 @@ def boolean_model(paths):
         Tools.save_data(II,'./BooleanModel/invertedIndex',obj=True)
         Tools.save_data(DF,'./BooleanModel/docsFrequency',obj=True)
 
-    docs, word_list = get_query(II, V)
+    docs, word_list = get_query2(II, V)
+
+    #print(docs, word_list)
 
     ranking = []
 
